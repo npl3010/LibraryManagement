@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class ReaderDetailController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITableViewDataSource, UITableViewDelegate {
     // Properties:
@@ -186,6 +187,19 @@ class ReaderDetailController: UIViewController, UITextFieldDelegate, UIImagePick
             cell.bookQuantity.text = String(rb.quantity);
             cell.bookQuantity.isEnabled = false;
             cell.bookImage.image = b.bookImage;
+            
+            // Get image from Online Database:
+            let storageRef = Storage.storage().reference();
+            let imageRef = storageRef.child("books/\(b.imagePath)");
+            imageRef.getData(maxSize: 30 * 1024 * 1024) { (data, error) in
+                if error == nil {
+                    if let temp = UIImage(data: data!) {
+                        cell.bookImage.image = temp;
+                    }
+                } else {
+                    print("An error occurred! \(String(describing: error))");
+                }
+            }
             
             return cell;
         }

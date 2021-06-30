@@ -1,0 +1,15 @@
+
+1- Delete Podfile.lock.
+
+2- Delete Pods folder.
+
+3- Delete .xcworkspace.
+
+4- cd "your project".
+
+5. "pod install".
+
+6- XCode > Product > Clean Build Folder.
+
+7- Build.
+

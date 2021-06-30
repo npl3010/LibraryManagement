@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class BooksTableViewController: UITableViewController, UISearchBarDelegate {
     // Properties:
@@ -64,7 +65,21 @@ class BooksTableViewController: UITableViewController, UISearchBarDelegate {
         if let cell = tableView.dequeueReusableCell(withIdentifier: "BooksTableViewCell", for: indexPath) as? BooksTableViewCell {
             
             let book = filteredBooks[indexPath.row];
+            
             cell.bookImage.image = book.bookImage;
+            // Get image from Online Database:
+            let storageRef = Storage.storage().reference();
+            let imageRef = storageRef.child("books/\(book.imagePath)");
+            imageRef.getData(maxSize: 30 * 1024 * 1024) { (data, error) in
+                if error == nil {
+                    if let temp = UIImage(data: data!) {
+                        cell.bookImage.image = temp;
+                    }
+                } else {
+                    print("An error occurred! \(String(describing: error))");
+                }
+            }
+            
             cell.bookName.text = book.bookName;
             cell.bookAuthors.text = book.bookAuthors;
             cell.bookQuantity.text = String(book.bookQuantity);
@@ -91,6 +106,11 @@ class BooksTableViewController: UITableViewController, UISearchBarDelegate {
             // Delete the row from data model:
             for i in 0...BooksManagement.books.count-1 {
                 if BooksManagement.books[i].bookID == filteredBooks[indexPath.row].bookID {
+                    
+                    // Remove book from database:
+                    let ref = Database.database().reference();
+                    ref.child("books/\(filteredBooks[indexPath.row].bookID)").removeValue();
+                    
                     BooksManagement.books.remove(at: i);
                     break;
                 }
@@ -168,6 +188,31 @@ class BooksTableViewController: UITableViewController, UISearchBarDelegate {
                 filteredBooks.append(b);
                 // Update data model:
                 BooksManagement.books.append(b);
+                
+                // Add image to database:
+                if let imgData = b.bookImage?.pngData() {
+                    let storageRef = Storage.storage().reference();
+                    let imageRef = storageRef.child("books/img_\(b.bookID).png");
+                    // Upload:
+                    imageRef.putData(imgData, metadata: nil, completion: { _, error in
+                        if error == nil {
+                            print("Uploaded image successfully!")
+                        }
+                        else {
+                            print("Failed to upload image!");
+                        }
+                    })
+                }
+                // Add book to database:
+                let ref = Database.database().reference();
+                ref.child("books/\(b.bookID)").setValue(["book_id": b.bookID,
+                                                         "book_name": b.bookName,
+                                                         "book_authors": b.bookAuthors,
+                                                         "book_type": b.bookType,
+                                                         "book_quantity": b.bookQuantity,
+                                                         "book_quantity_current": b.bookQuantityCurrent,
+                                                         "book_image": "img_\(b.bookID).png"]);
+                
                 // Reload table:
                 tableView.reloadData();
             }
@@ -181,6 +226,31 @@ class BooksTableViewController: UITableViewController, UISearchBarDelegate {
                             BooksManagement.books[i] = b;
                         }
                     }
+                    
+                    // Update image in database:
+                    if let imgData = b.bookImage?.pngData() {
+                        let storageRef = Storage.storage().reference();
+                        let imageRef = storageRef.child("books/img_\(b.bookID).png");
+                        // Upload:
+                        imageRef.putData(imgData, metadata: nil, completion: { _, error in
+                            if error == nil {
+                                print("Uploaded successfully!")
+                            }
+                            else {
+                                print("Failed to upload!");
+                            }
+                        })
+                    }
+                    // Update book in database:
+                    let ref = Database.database().reference();
+                    ref.child("books/\(b.bookID)").setValue(["book_id": b.bookID,
+                                                             "book_name": b.bookName,
+                                                             "book_authors": b.bookAuthors,
+                                                             "book_type": b.bookType,
+                                                             "book_quantity": b.bookQuantity,
+                                                             "book_quantity_current": b.bookQuantityCurrent,
+                                                             "book_image": "img_\(b.bookID).png"]);
+                    
                     // Reload table:
                     tableView.reloadData();
                 }

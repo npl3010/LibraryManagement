@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import Firebase
 
-class GettingBookBackViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class GettingBookBackViewController: UIViewController, UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate {
     // Properties:
     var readerBooks = [ReaderBooks]();
     var borrowedBooks = [Book]();
@@ -33,8 +34,21 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
         btnSubmit.setTitleColor(UIColor.white, for: .normal);
         
         // Delegation:
+        readerID.delegate = self;
+        borrowingID.delegate = self;
+        quantity.delegate = self;
         self.booksTableView.delegate = self;
         self.booksTableView.dataSource = self;
+    }
+    
+    //MARK: Hiding keyboard after tap "done":
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder();
+        return true;
+    }
+    
+    //MARK: Hiding keyboard:
+    func textFieldDidEndEditing(_ textField: UITextField) {
     }
     
     // Methods:
@@ -187,6 +201,11 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
                         for b in BooksManagement.books {
                             if b.bookID == rb.bookID {
                                 b.bookQuantityCurrent = b.bookQuantityCurrent + rb.quantity;
+                                
+                                // Update in database:
+                                let ref = Database.database().reference();
+                                ref.child("books/\(b.bookID)/book_quantity_current").setValue(b.bookQuantityCurrent);
+                                
                                 isDone = true;
                             }
                         }
@@ -195,12 +214,19 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
                 
                 // Remove item from ReaderBooksManagement.readerBooks:
                 var indexToBeRemoved = [Int]();
+                var readerBooksToBeRemoved = [ReaderBooks]();
                 var count = 0;
                 for i in 0...ReaderBooksManagement.readerBooks.count-1 {
                     if ReaderBooksManagement.readerBooks[i].readerID == Int(readerID.text ?? "") {
                         indexToBeRemoved.append(i - count);
+                        readerBooksToBeRemoved.append(ReaderBooksManagement.readerBooks[i]);
                         count = count + 1;
                     }
+                }
+                for rb in readerBooksToBeRemoved {
+                    // Remove book from database:
+                    let ref = Database.database().reference();
+                    ref.child("readerbooks/\(rb.readerbooksID)").removeValue();
                 }
                 for i in indexToBeRemoved {
                     ReaderBooksManagement.readerBooks.remove(at: i);
@@ -226,6 +252,11 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
                             if b.bookID == rb.bookID {
                                 b.bookQuantityCurrent = b.bookQuantityCurrent + Int(quantity.text ?? "0")!;
                                 rb.quantity = rb.quantity - Int(quantity.text ?? "0")!;
+                                
+                                // Update in database:
+                                let ref = Database.database().reference();
+                                ref.child("books/\(b.bookID)/book_quantity_current").setValue(b.bookQuantityCurrent);
+                                ref.child("readerbooks/\(rb.readerbooksID)/quantity").setValue(rb.quantity);
                             }
                         }
                         // Delete ReaderBooksManagement.readerBooks if it's quantity value is equal to 0:
@@ -233,6 +264,11 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
                             for i in 0...ReaderBooksManagement.readerBooks.count-1 {
                                 if rb.readerbooksID == ReaderBooksManagement.readerBooks[i].readerbooksID {
                                     ReaderBooksManagement.readerBooks.remove(at: i);
+                                    
+                                    // Remove book from database:
+                                    let ref = Database.database().reference();
+                                    ref.child("readerbooks/\(rb.readerbooksID)").removeValue();
+                                    
                                     break;
                                 }
                             }
@@ -257,6 +293,11 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
                 message.text = "Get book back successfully!";
                 message.textColor = UIColor.green;
                 quantity.text = "";
+            }
+            else {
+                isValid_readerID = false;
+                message.text = "All fields must contain valid values!";
+                message.textColor = UIColor.red;
             }
         }
         else {
@@ -285,7 +326,21 @@ class GettingBookBackViewController: UIViewController, UITableViewDataSource, UI
             cell.bookID.text = String(b.bookID);
             cell.bookName.text = b.bookName;
             cell.bookQuantity.text = String(rb.quantity);
-            cell.bookImage.image = b.bookImage;
+            
+            // Get image from Online Database:
+            let storageRef = Storage.storage().reference();
+            let imageRef = storageRef.child("books/\(b.imagePath)");
+            imageRef.getData(maxSize: 30 * 1024 * 1024) { (data, error) in
+                if error == nil {
+                    if let temp = UIImage(data: data!) {
+                        cell.bookImage.image = temp;
+                    }
+                } else {
+                    print("An error occurred! \(String(describing: error))");
+                }
+            }
+            // cell.bookImage.image = b.bookImage;
+            
             cell.borrowingID.text = String(rb.readerbooksID);
             
             return cell;

@@ -13,19 +13,19 @@ public class BooksManagement {
     static var books = [Book]();
     
     static func loadData() -> Void {
-        if let book = Book(id: 1, name: "Thay Doi Tu Duy Lanh Dao", authors: "Authors", type: "Type", quantity: 100, quantityCurrent: 90, image: UIImage(named: "ThayDoiTuDuyLanhDao")) {
+        if let book = Book(id: 1, name: "Thay Doi Tu Duy Lanh Dao", authors: "Authors", type: "Type", quantity: 100, quantityCurrent: 90, path: "", image: UIImage(named: "ThayDoiTuDuyLanhDao")) {
             self.books.append(book);
         }
-        if let book = Book(id: 2, name: "Quan Tri Marketing", authors: "Authors", type: "Type", quantity: 200, quantityCurrent: 195, image: UIImage(named: "QuanTriMarketing")) {
+        if let book = Book(id: 2, name: "Quan Tri Marketing", authors: "Authors", type: "Type", quantity: 200, quantityCurrent: 195, path: "", image: UIImage(named: "QuanTriMarketing")) {
             self.books.append(book);
         }
-        if let book = Book(id: 3, name: "Quan Tri Chien Luoc", authors: "Authors", type: "Type", quantity: 50, quantityCurrent: 42, image: UIImage(named: "QuanTriChienLuoc")) {
+        if let book = Book(id: 3, name: "Quan Tri Chien Luoc", authors: "Authors", type: "Type", quantity: 50, quantityCurrent: 42, path: "", image: UIImage(named: "QuanTriChienLuoc")) {
             self.books.append(book);
         }
-        if let book = Book(id: 4, name: "Cay Cam Ngot Cua Toi", authors: "Authors", type: "Type", quantity: 80, quantityCurrent: 77, image: UIImage(named: "CayCamNgotCuaToi")) {
+        if let book = Book(id: 4, name: "Cay Cam Ngot Cua Toi", authors: "Authors", type: "Type", quantity: 80, quantityCurrent: 77, path: "", image: UIImage(named: "CayCamNgotCuaToi")) {
             self.books.append(book);
         }
-        if let book = Book(id: 5, name: "Dac Nhan Tam", authors: "Authors", type: "Type", quantity: 3, quantityCurrent: 2, image: UIImage(named: "DacNhanTam")) {
+        if let book = Book(id: 5, name: "Dac Nhan Tam", authors: "Authors", type: "Type", quantity: 3, quantityCurrent: 2, path: "", image: UIImage(named: "DacNhanTam")) {
             self.books.append(book);
         }
     }

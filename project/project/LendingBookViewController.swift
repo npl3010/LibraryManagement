@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import Firebase
 
-class LendingBookViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class LendingBookViewController: UIViewController, UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate {
     // Properties:
     var suggestedBooks = [Book]();
     var isValid_readerID: Bool = false;
@@ -32,8 +33,21 @@ class LendingBookViewController: UIViewController, UITableViewDataSource, UITabl
         btnSubmit.setTitleColor(UIColor.white, for: .normal);
         
         // Delegation:
+        readerID.delegate = self;
+        bookIDOrName.delegate = self;
+        quantity.delegate = self;
         self.booksTableView.delegate = self;
         self.booksTableView.dataSource = self;
+    }
+    
+    //MARK: Hiding keyboard after tap "done":
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder();
+        return true;
+    }
+    
+    //MARK: Hiding keyboard:
+    func textFieldDidEndEditing(_ textField: UITextField) {
     }
     
     // Methods:
@@ -106,14 +120,26 @@ class LendingBookViewController: UIViewController, UITableViewDataSource, UITabl
                     let rbID = ReaderBooksManagement.readerBooks[ReaderBooksManagement.readerBooks.count - 1].readerbooksID + 1;
                     let bID = suggestedBooks[0].bookID;
                     if let rb = ReaderBooks(id: rbID, readerId: Int(readerID.text!)!, bookId: bID, numberOfBooks: Int(quantity.text!)!) {
-                        ReaderBooksManagement.readerBooks.append(rb);
+                        let ref = Database.database().reference();
                         
-                        // After lending, update book quantity of BooksManagement.books:
-                        for b in BooksManagement.books {
-                            if b.bookID == bID {
-                                b.bookQuantityCurrent = b.bookQuantityCurrent - Int(quantity.text!)!;
+                        // Lending:
+                        if rb.quantity > 0 {
+                            ReaderBooksManagement.readerBooks.append(rb);
+                            
+                            ref.child("readerbooks/\(rbID)").setValue(["readerbooks_id": rb.readerbooksID,
+                                                                       "reader_id": rb.readerID,
+                                                                       "book_id": rb.bookID,
+                                                                       "quantity": rb.quantity]);
+                            
+                            // After lending, update book quantity of BooksManagement.books:
+                            for b in BooksManagement.books {
+                                if b.bookID == bID {
+                                    b.bookQuantityCurrent = b.bookQuantityCurrent - Int(quantity.text!)!;
+                                    ref.child("books/\(b.bookID)/book_quantity_current").setValue(b.bookQuantityCurrent);
+                                }
                             }
                         }
+                        
                         booksTableView.reloadData();
                         
                         // Show message:

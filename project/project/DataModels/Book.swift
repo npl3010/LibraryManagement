@@ -16,9 +16,10 @@ class Book {
     var bookType: String;
     var bookQuantity: Int;
     var bookQuantityCurrent: Int;
+    var imagePath: String;
     var bookImage: UIImage?;
     
-    init?(id: Int, name: String, authors: String, type: String, quantity: Int, quantityCurrent: Int, image: UIImage?) {
+    init?(id: Int, name: String, authors: String, type: String, quantity: Int, quantityCurrent: Int, path: String, image: UIImage?) {
         if name.isEmpty == true || authors.isEmpty == true || type.isEmpty == true {
             return nil;
         }
@@ -28,6 +29,7 @@ class Book {
         bookType = type;
         bookQuantity = quantity;
         bookQuantityCurrent = quantityCurrent;
+        imagePath = path;
         bookImage = image;
     }
     

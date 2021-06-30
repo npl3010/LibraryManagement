@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class BookDetailController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     // Properties:
@@ -56,6 +57,20 @@ class BookDetailController: UIViewController, UITextFieldDelegate, UIImagePicker
             bookTypes.text = b.bookType;
             bookTotalQuantity.text = String(b.bookQuantity);
             bookCurrentQuantity.text = String(b.bookQuantityCurrent);
+            
+            // Get image from Online Database:
+            let storageRef = Storage.storage().reference();
+            let imageRef = storageRef.child("books/\(b.imagePath)");
+            imageRef.getData(maxSize: 30 * 1024 * 1024) { (data, error) in
+                if error == nil {
+                    if let temp = UIImage(data: data!) {
+                        self.bookImage.image = temp;
+                    }
+                } else {
+                    print("An error occurred! \(String(describing: error))");
+                }
+            }
+            
         }
     }
     
@@ -213,7 +228,7 @@ class BookDetailController: UIViewController, UITextFieldDelegate, UIImagePicker
                 let quantityCurrent = Int(bookCurrentQuantity.text ?? "0");
                 let image = bookImage.image;
 
-                self.book = Book(id: id!, name: name, authors: authors, type: type, quantity: quantity!, quantityCurrent: quantityCurrent!, image: image);
+                self.book = Book(id: id!, name: name, authors: authors, type: type, quantity: quantity!, quantityCurrent: quantityCurrent!, path: "img_\(id!).png", image: image);
             }
         }
     }

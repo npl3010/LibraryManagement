@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class ReadersTableViewController: UITableViewController, UISearchBarDelegate {
     // Properties:
@@ -104,6 +105,11 @@ class ReadersTableViewController: UITableViewController, UISearchBarDelegate {
             // Delete the row from data model:
             for i in 0...ReadersManagement.readers.count-1 {
                 if ReadersManagement.readers[i].readerID == filteredReaders[indexPath.row].readerID {
+                    
+                    // Remove reader from database:
+                    let ref = Database.database().reference();
+                    ref.child("readers/\(filteredReaders[indexPath.row].readerID)").removeValue();
+                    
                     ReadersManagement.readers.remove(at: i);
                     break;
                 }
@@ -180,6 +186,14 @@ class ReadersTableViewController: UITableViewController, UISearchBarDelegate {
                 filteredReaders.append(r);
                 // Update data model:
                 ReadersManagement.readers.append(r);
+                
+                // Add reader to database:
+                let ref = Database.database().reference();
+                ref.child("readers/\(r.readerID)").setValue(["reader_id": r.readerID,
+                                                         "reader_name": r.readerName,
+                                                         "reader_phone": r.readerPhone,
+                                                         "reader_email": r.readerEmail]);
+                
                 // Reload table:
                 tableView.reloadData();
             }
@@ -193,6 +207,14 @@ class ReadersTableViewController: UITableViewController, UISearchBarDelegate {
                             ReadersManagement.readers[i] = r;
                         }
                     }
+                    
+                    // Update reader in database:
+                    let ref = Database.database().reference();
+                    ref.child("readers/\(r.readerID)").setValue(["reader_id": r.readerID,
+                                                                "reader_name": r.readerName,
+                                                                "reader_phone": r.readerPhone,
+                                                                "reader_email": r.readerEmail]);
+                    
                     // Reload table:
                     tableView.reloadData();
                 }
